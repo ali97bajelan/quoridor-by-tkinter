@@ -11,19 +11,29 @@ def start_gui(session, num):
     """Starting point when module is the main routine."""
     global root
     root = Tk()
-    top = NewToplevel(root, session, num)
+    Board(root, session, num)
     root.mainloop()
 
 
-class NewToplevel:
+class Board:
     def __init__(self, top=None, session=None, num=None):
-
         top.geometry("1000x700+200+50")
         top.title("Game Board")
         top.configure(background="gray")
 
+        global color, wall
+        color = ['red', 'blue', 'green', 'yellow']
+        wall = [0 for i in range(num)]
+        print(wall)
+        self.turn = 0
+
         def music():
             winsound.PlaySound('Vay-Behalash.wav', winsound.SND_ALIAS | winsound.SND_ASYNC)
+
+        self.status = Label(top, text=" Turn Player %s" % color[self.turn])
+        self.status.place(relx=0.85, rely=0.10, height=50, width=120)
+
+        ''' make places for pawns '''
 
         self.Button = [[0 for i in range(9)] for j in range(9)]  # main buttons
 
@@ -35,8 +45,8 @@ class NewToplevel:
             while j < 9:
                 self.Button[i][j] = Button(top)
                 self.Button[i][j].place(relx=x, rely=y, height=50, width=50)
-                self.Button[i][j].bind("<Button-1>", lambda a=None, f=i, g=j: self.move(session, f, g))
-                self.Button[i][j].configure(background="#d9d9d9")
+                self.Button[i][j].bind("<Button-1>", lambda a=None, f=i, g=j: self.move(session, f, g, num))
+                self.Button[i][j].configure(background="gray88")
 
                 j += 1
                 x += 0.08
@@ -102,7 +112,8 @@ class NewToplevel:
                 self.c_wall[i][j].place(relx=x, rely=y, height=15, width=15)
                 self.c_wall[i][j].bind("<Button-1>",
                                        lambda f=None, a=i, b=j: self.decied(self.h_wall[a][b], self.h_wall[a][b + 1],
-                                                                            self.v_wall[a][b], self.v_wall[a + 1][b]))
+                                                                            self.v_wall[a][b], self.v_wall[a + 1][b],
+                                                                            num))
                 self.c_wall[i][j].configure(background="white")
 
                 j += 1
@@ -116,73 +127,90 @@ class NewToplevel:
         self.Hayede.place(relx=0.80, rely=0.88, height=75, width=75)
         self.Hayede.configure(text="Play Hayede", background="#d9d9d9")
 
-    def move(self, session, i, j):
+    def move(self, session, i, j, num):
         # info = json.dumps(self.Button)
         # t = requests.get(address.url['move'], data=info)
         # print(t.content)
         # while
-        x = self.Button[i][j]
-        if i == 0 and j == 0:
-            a = self.Button[1][0]
-            b = self.Button[0][1]
-        elif i == 8 and j == 8:
-            a = self.Button[8][7]
-            b = self.Button[7][8]
-        elif i == 0 and j == 8:
-            a = self.Button[1][8]
-            b = self.Button[0][7]
-        elif i == 8 and j == 0:
-            a = self.Button[8][1]
-            b = self.Button[7][0]
-        elif i == 0 and j != 0:
-            a = self.Button[i][j + 1]
-            b = self.Button[i][j - 1]
-            c = self.Button[i + 1][j]
-        elif j == 0 and i != 0:
-            a = self.Button[i][j + 1]
-            b = self.Button[i - 1][j]
-            c = self.Button[i + 1][j]
-        elif i == 8 and j != 8:
-            a = self.Button[i][j + 1]
-            b = self.Button[i][j - 1]
-            c = self.Button[i - 1][j]
-        elif j == 8 and i != 8:
-            a = self.Button[i][j - 1]
-            b = self.Button[i - 1][j]
-            c = self.Button[i + 1][j]
-        else:
-            a = self.Button[i][j - 1]
-            b = self.Button[i - 1][j]
-            c = self.Button[i + 1][j]
-            d = self.Button[i][j + 1]
-        try:
-            if a['bg'] == 'red':
-                a['bg'] = 'gray88'
-                x['bg'] = 'red'
-                return True
-            if b['bg'] == 'red':
-                b['bg'] = 'gray88'
-                x['bg'] = 'red'
-                return True
-            if c['bg'] == 'red':
-                c['bg'] = 'gray88'
-                x['bg'] = 'red'
-                return True
-            if d['bg'] == 'red':
-                d['bg'] = 'gray88'
-                x['bg'] = 'red'
-                return True
-        except UnboundLocalError:
-            pass
 
-    def decied(self, a, b, c, d):
-        answer = tkinter.messagebox.askyesnocancel('Which side ?', 'Do you want Horizontal wall?(yes)\n \tVertical(no)')
+        for a in range(9):
+            for b in range(9):
+                if self.Button[a][b]['bg'] == color[self.turn]:
+                    f = a
+                    g = b
+                    break
+            else:
+                continue
+            break
+
+        des = self.Button[i][j]
+        home = self.Button[f][g]
+        if f == i and (g == j + 1 or g == j - 1):
+            if g == j + 1:  # *** move to left ***
+                if self.v_wall[i][j]['bg'] != 'black':
+                    if des['bg'] == 'gray88':
+                        des['bg'] = color[self.turn]
+                        home['bg'] = 'gray88'
+                        self.turn += 1
+                    else:
+                        tkinter.messagebox.showerror('Error', 'Pay attention to other Player pawns')
+                else:
+                    tkinter.messagebox.showerror('Error', "Pay attention to walls")
+            else:  # *** move to right ***
+                if self.v_wall[f][g]['bg'] != 'black':
+                    if des['bg'] == 'gray88':
+                        des['bg'] = color[self.turn]
+                        home['bg'] = 'gray88'
+                        self.turn += 1
+                    else:
+                        tkinter.messagebox.showerror('Error', 'Pay attention to other Player pawns')
+                else:
+                    tkinter.messagebox.showerror('Error', "Pay attention to walls")
+
+        elif g == j and (f == i + 1 or f == i - 1):
+            if f == i + 1:  # *** move to up ***
+                if self.h_wall[i][j]['bg'] != 'black':
+                    if des['bg'] == 'gray88':
+                        des['bg'] = color[self.turn]
+                        home['bg'] = 'gray88'
+                        self.turn += 1
+                    else:
+                        tkinter.messagebox.showerror('Error', 'Pay attention to other Player pawns')
+                else:
+                    tkinter.messagebox.showerror('Error', "Pay attention to walls ")
+            else:  # *** move to down ***
+                if self.v_wall[f][g]['bg'] != 'black':
+                    if des['bg'] == 'gray88':
+                        des['bg'] = color[self.turn]
+                        home['bg'] = 'gray88'
+                        self.turn += 1
+                    else:
+                        tkinter.messagebox.showerror('Error', 'Pay attention to other Player pawns')
+                else:
+                    tkinter.messagebox.showerror('Error', "Pay attention to walls")
+        else:
+            tkinter.messagebox.showerror('Error', 'Choose correct location')
+
+        if self.turn == num:
+            self.turn = 0
+
+        self.status['text'] = "turn Player %s" % color[self.turn]
+        self.win(num)
+
+    def decied(self, a, b, c, d, num):
+        if wall[self.turn] == 20 / num:
+            tkinter.messagebox.showerror('Error', ' You don\'t have any wall ')
+            return False
+        answer = tkinter.messagebox.askyesnocancel('Which side ?',
+                                                   'Do you want Horizontal wall?(yes)\n \tVertical(no)')
         if str(answer) == 'True':
             if a['bg'] == 'black' or b['bg'] == 'black':
                 tkinter.messagebox.showerror('Error', 'You cannot choose this location')
             else:
                 a.configure(bg="black")
                 b.configure(bg="black")
+                wall[self.turn] += 1
+                self.turn += 1
 
         if str(answer) == 'False':
             if c['bg'] == 'black' or d['bg'] == 'black':
@@ -190,3 +218,32 @@ class NewToplevel:
             else:
                 c.configure(bg="black")
                 d.configure(bg="black")
+                wall[self.turn] += 1
+                self.turn += 1
+        if self.turn == num:
+            self.turn = 0
+
+        self.status['text'] = "turn Player %s" % color[self.turn]
+
+    def win(self, num):
+        for m in range(9):
+            if self.Button[8][m]['bg'] == 'red':
+                tkinter.messagebox.showinfo(" Game was finish ", " Congratulation Player Red\n  You Win ")
+                root.destroy()
+                return False
+        for m in range(9):
+            if self.Button[0][m]['bg'] == 'blue':
+                tkinter.messagebox.showinfo(" Game was finish ", " Congratulation Player Blue\n    You Win ")
+                root.destroy()
+                return False
+        if num == 4:
+            for m in range(9):
+                if self.Button[m][0]['bg'] == 'green':
+                    tkinter.messagebox.showinfo(" Game was finish ", " Congratulation Player Green\n   You Win ")
+                    root.destroy()
+                    return False
+            for m in range(9):
+                if self.Button[m][8]['bg'] == 'yellow':
+                    tkinter.messagebox.showinfo(" Game was finish ", " Congratulation Player Yellow\n   You Win ")
+                    root.destroy()
+                    return False
