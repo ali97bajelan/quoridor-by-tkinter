@@ -5,6 +5,7 @@ import address
 import requests
 import gameBoardIDE
 
+
 # from tkinter import Tk,Label
 class App:
     def __init__(self, master):
@@ -58,14 +59,10 @@ class App:
             return False
         else:
             ques = tkinter.messagebox.askquestion("Which game ?", "Two Players?(yes) \n Four Players?(no)")
-            print(ques)
             if str(ques) == "yes":
-                print("Bia")
-                gameBoardIDE.start_gui(session)
-
+                gameBoardIDE.start_gui(session, 2)
             else:
-                print("Na")
-
+                gameBoardIDE.start_gui(session, 4)
 
     def login(self, session):
         def inquiry():
@@ -81,7 +78,7 @@ class App:
                 tkinter.messagebox.showerror("Error", " Your information is incorrect ")
                 return False
             else:
-                tkinter.messagebox.showinfo("congralition", " You are logged in ")
+                tkinter.messagebox.showinfo("Congratulation", " You are logged in ")
                 login.destroy()
                 return True
 
@@ -119,7 +116,7 @@ class App:
                 if "Already" in str(t.content):
                     tkinter.messagebox.showerror("Error", "You Already registered")
                 else:
-                    tkinter.messagebox.showinfo("Congraddoffogk", "You are Registered")
+                    tkinter.messagebox.showinfo("Congratulation", "You are Registered")
                     signup.destroy()
             else:
                 tkinter.messagebox.showerror("Error", " Choose same password ")
